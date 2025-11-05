@@ -1,0 +1,74 @@
+{% extends 'potential_app/base.html' %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <h1 class="display-4 fw-bold">Unlock Your Land's Potential</h1>
+        <p class="lead">Comprehensive analysis of solar, wind, and agricultural potential for any location</p>
+        <a href="{% url 'analyze' %}" class="btn btn-success btn-lg mt-3">
+            <i class="fas fa-search-location"></i> Analyze Your Land
+        </a>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row text-center mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 card-hover">
+                <div class="card-body">
+                    <i class="fas fa-solar-panel feature-icon"></i>
+                    <h3>Solar Potential</h3>
+                    <p>Estimate energy generation from solar panels based on historical weather data and land area.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 card-hover">
+                <div class="card-body">
+                    <i class="fas fa-wind feature-icon"></i>
+                    <h3>Wind Potential</h3>
+                    <p>Calculate wind energy generation potential with customizable turbine parameters.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 card-hover">
+                <div class="card-body">
+                    <i class="fas fa-seedling feature-icon"></i>
+                    <h3>Agricultural Analysis</h3>
+                    <p>Get soil analysis and crop recommendations based on your land's characteristics.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ New Report Section -->
+    <div class="row mb-5">
+        <div class="col-md-12 text-center">
+            <div class="card card-hover p-4">
+                <i class="fas fa-file-pdf feature-icon"></i>
+                <h3>Reports</h3>
+                <p>Generate and download professional PDF reports of your analysis.</p>
+                <a href="{% url 'report_download' analysis_id=1 %}" class="btn btn-outline-success btn-lg mt-3">
+                    <i class="fas fa-download"></i> Download Sample Report
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-lg-8 mx-auto text-center">
+            <h2>How It Works</h2>
+            <ol class="list-group list-group-numbered list-group-flush mt-4">
+                <li class="list-group-item">Enter your land coordinates and area</li>
+                <li class="list-group-item">Provide the time period for analysis</li>
+                <li class="list-group-item">Customize system parameters (optional)</li>
+                <li class="list-group-item">Get comprehensive analysis report</li>
+            </ol>
+            <a href="{% url 'analyze' %}" class="btn btn-primary btn-lg mt-4">
+                Get Started <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
