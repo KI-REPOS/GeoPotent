@@ -35,6 +35,25 @@ MOCK_SOIL_DATA = {
     }
 }
 
+# Mock Crop Data (Yield in kg/ha, Price in INR/kg)
+CROP_DATA = {
+    "Rice": {"yield": 4000, "price": 25},
+    "Wheat": {"yield": 3500, "price": 22},
+    "Maize": {"yield": 5000, "price": 20},
+    "Cotton": {"yield": 2000, "price": 60},
+    "Sugarcane": {"yield": 80000, "price": 3},  # High yield, low price per kg
+    "Pulses (Chickpeas, Lentils, etc.)": {"yield": 1500, "price": 70},
+    "Millets (Pearl millet, Finger millet, etc.)": {"yield": 2000, "price": 30},
+    "Oilseeds (Groundnut, Sunflower, etc.)": {"yield": 2500, "price": 50},
+    "Acid-tolerant crops (Potatoes, Blueberries, etc.)": {"yield": 25000, "price": 15},
+    "Alkaline-tolerant crops (Asparagus, Beets, etc.)": {"yield": 15000, "price": 40},
+    "Clay-soil crops (Rice, Wheat, etc.)": {"yield": 3800, "price": 24},
+    "Sandy-soil crops (Groundnut, Millets, etc.)": {"yield": 2200, "price": 40},
+    "Loam-soil crops (Most vegetables, grains, etc.)": {"yield": 10000, "price": 30},
+    "General crops (adaptable to various soil conditions)": {"yield": 5000, "price": 25},
+    "General crops suitable for diverse soil conditions": {"yield": 5000, "price": 25},
+}
+
 
 def get_soil_data(lat: float, lon: float, use_mock: bool = False) -> Optional[Dict]:
     """
@@ -215,6 +234,74 @@ def recommend_crops(soil_data: Dict) -> List[str]:
         return ["Incomplete soil data for accurate recommendation"]
 
     return recommendations
+
+def estimate_agri_revenue(crops: List[str], area_ha: float) -> Dict[str, Any]:
+    """
+    Estimate revenue for recommended crops.
+    Returns the best performing crop and detailed list.
+    """
+    if not crops or area_ha <= 0:
+        return {"best_crop": None, "max_revenue": 0, "details": []}
+
+    details = []
+    max_revenue = 0
+    best_crop = None
+
+    for crop in crops:
+        data = CROP_DATA.get(crop, {"yield": 3000, "price": 20}) # Default fallback
+        total_yield = data["yield"] * area_ha
+        revenue = total_yield * data["price"]
+        
+        details.append({
+            "crop": crop,
+            "yield_kg": total_yield,
+            "price_per_kg": data["price"],
+            "revenue": revenue
+        })
+
+        if revenue > max_revenue:
+            max_revenue = revenue
+            best_crop = crop
+
+    return {
+        "best_crop": best_crop,
+        "max_revenue": max_revenue,
+        "details": details
+    }
+
+def estimate_agri_revenue(crops: List[str], area_ha: float) -> Dict[str, Any]:
+    """
+    Estimate revenue for recommended crops.
+    Returns the best performing crop and detailed list.
+    """
+    if not crops or area_ha <= 0:
+        return {"best_crop": None, "max_revenue": 0, "details": []}
+
+    details = []
+    max_revenue = 0
+    best_crop = None
+
+    for crop in crops:
+        data = CROP_DATA.get(crop, {"yield": 3000, "price": 20}) # Default fallback
+        total_yield = data["yield"] * area_ha
+        revenue = total_yield * data["price"]
+        
+        details.append({
+            "crop": crop,
+            "yield_kg": total_yield,
+            "price_per_kg": data["price"],
+            "revenue": revenue
+        })
+
+        if revenue > max_revenue:
+            max_revenue = revenue
+            best_crop = crop
+
+    return {
+        "best_crop": best_crop,
+        "max_revenue": max_revenue,
+        "details": details
+    }
 
 
 def get_fallback_recommendations(soil_data: Dict) -> List[str]:

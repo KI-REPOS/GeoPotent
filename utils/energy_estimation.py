@@ -13,7 +13,8 @@ import logging
 import base64
 import io
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, List
+from .soil_analysis import estimate_agri_revenue
 
 import requests
 import requests_cache
@@ -264,4 +265,120 @@ def estimate_energy_potential(
         "config": {"pv": pv_config, "wind": wind_config, "dc_voltage": dc_voltage},
     }
 
+    # --- Mixed Analysis & Optimization ---
+    # 1. Solar Only
+    revenue_solar_only = revenue
+    
+    # 2. Wind Only (Assumes full land available for wind spacing, but actual footprint is small)
+    # Wind revenue is already part of 'revenue' if both are enabled, but let's separate them.
+    revenue_wind_only = total_wind * price_per_kwh
+    
+    # 3. Agriculture Only
+    area_ha = area_m2 / 10000.0
+    # We need crop recommendations passed in or we fetch them? 
+    # Ideally, views.py passes them, but here we might need to re-fetch or just return a structure 
+    # that views.py populates.
+    # For now, let's assume we return the raw energy data and views.py handles the mixing 
+    # OR we accept crop_revenue as an argument.
+    # Let's change the signature to accept optional crop_revenue_data
+    
+    results = {
+        "total_energy_kwh": total_energy,
+        "pv_energy_kwh": total_pv,
+        "wind_energy_kwh": total_wind,
+        "total_revenue": revenue,
+        "monthly_breakdown": monthly_breakdown,
+        "hourly_plot": hourly_plot,
+        "daily_plot": daily_plot,
+        "config": {"pv": pv_config, "wind": wind_config, "dc_voltage": dc_voltage},
+    }
+
     return safe_json(results)
+
+def calculate_mixed_potential(energy_results: Dict, crop_results: Dict, area_ha: float) -> Dict:
+    """
+    Calculate and compare different land-use mixes.
+    """
+    price_per_kwh = 6.0 # INR
+    
+    # Base values
+    solar_kwh = energy_results.get("pv_energy_kwh", 0)
+    wind_kwh = energy_results.get("wind_energy_kwh", 0)
+    agri_revenue = crop_results.get("max_revenue", 0)
+    best_crop = crop_results.get("best_crop", "Unknown")
+
+    solar_revenue = solar_kwh * price_per_kwh
+    wind_revenue = wind_kwh * price_per_kwh
+
+    # Scenarios
+    scenarios = []
+
+    # 1. Solar Only
+    scenarios.append({
+        "name": "Solar Only",
+        "revenue": solar_revenue,
+        "details": "Full area used for Solar PV."
+    })
+
+    # 2. Wind Only
+    scenarios.append({
+        "name": "Wind Only",
+        "revenue": wind_revenue,
+        "details": "Full area used for Wind Turbines."
+    })
+
+    # 3. Agriculture Only
+    scenarios.append({
+        "name": f"Agriculture Only ({best_crop})",
+        "revenue": agri_revenue,
+        "details": f"Full area cultivated with {best_crop}."
+    })
+
+    # 4. Solar + Wind (Hybrid)
+    # Assumption: Wind turbines take ~5% space, Solar takes rest? 
+    # Or they coexist. Usually Wind spacing is large. 
+    # Let's assume Solar takes 95% area, Wind takes 100% effectiveness (height).
+    # But shading might be an issue. Let's assume 90% Solar, 100% Wind.
+    s_w_revenue = (solar_revenue * 0.9) + wind_revenue
+    scenarios.append({
+        "name": "Solar + Wind",
+        "revenue": s_w_revenue,
+        "details": "Wind turbines with Solar PV filling the spacing (90% Solar capacity)."
+    })
+
+    # 5. Solar + Agri (Agrivoltaics)
+    # Assumption: Solar panels spaced/elevated. 
+    # Solar density: 60%, Agri yield: 70%.
+    s_a_revenue = (solar_revenue * 0.6) + (agri_revenue * 0.7)
+    scenarios.append({
+        "name": f"Agrivoltaics (Solar + {best_crop})",
+        "revenue": s_a_revenue,
+        "details": "Elevated/Spaced Solar panels allowing cultivation (60% Solar, 70% Agri yield)."
+    })
+
+    # 6. Wind + Agri
+    # Wind footprint is small (~5%). Agri yield ~95%.
+    w_a_revenue = wind_revenue + (agri_revenue * 0.95)
+    scenarios.append({
+        "name": f"Wind + Agriculture ({best_crop})",
+        "revenue": w_a_revenue,
+        "details": "Wind turbines with cultivation in between (95% Agri yield)."
+    })
+
+    # 7. All Three
+    # Solar (Agrivoltaics config) + Wind.
+    # Solar: 60%, Agri: 65% (more shading/poles), Wind: 100%.
+    all_revenue = (solar_revenue * 0.6) + (agri_revenue * 0.65) + wind_revenue
+    scenarios.append({
+        "name": "Mixed (Solar + Wind + Agri)",
+        "revenue": all_revenue,
+        "details": "Integrated system: Wind turbines, spaced Solar, and crops."
+    })
+
+    # Find best
+    best_scenario = max(scenarios, key=lambda x: x["revenue"])
+
+    return {
+        "scenarios": scenarios,
+        "best_scenario": best_scenario
+    }

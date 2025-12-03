@@ -1,0 +1,25 @@
+{% extends 'potential_app/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">Find a PV Plant Builder</h2>
+    <div class="row">
+        {% for builder in builders %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ builder.user.username }}</h5>
+                    <p class="card-text">{{ builder.address }}</p>
+                    <p class="card-text"><small class="text-muted">Phone: {{ builder.phone }}</small></p>
+                    <a href="{% url 'submit_proposal' builder.user.id %}" class="btn btn-success">Request Proposal</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-muted">No builders found at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

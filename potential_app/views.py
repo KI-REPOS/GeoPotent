@@ -11,8 +11,8 @@ from django.contrib.staticfiles import finders
 
 from .forms import LandAnalysisForm, AdvancedSettingsForm
 from .models import LandAnalysis
-from utils.soil_analysis import get_soil_data, recommend_crops
-from utils.energy_estimation import estimate_energy_potential, plot_to_base64
+from utils.soil_analysis import get_soil_data, recommend_crops, estimate_agri_revenue
+from utils.energy_estimation import estimate_energy_potential, plot_to_base64, calculate_mixed_potential
 
 import matplotlib.pyplot as plt
 from xhtml2pdf import pisa   # ✅ for PDF rendering
@@ -120,6 +120,17 @@ class ProcessAnalysisView(View):
                 if not energy_results or energy_results.get("total_energy_kwh", 0) == 0:
                     logger.warning("⚠️ Energy estimation returned zero. Check API/data.")
 
+                # Agri Revenue
+                area_ha = analysis.area_ha or (analysis.area_m2 / 10000.0 if analysis.area_m2 else 0)
+                agri_revenue_results = estimate_agri_revenue(crop_recommendations, area_ha)
+                
+                # Mixed Potential
+                mixed_results = calculate_mixed_potential(energy_results, agri_revenue_results, area_ha)
+                
+                # Merge results
+                energy_results["agri_revenue"] = agri_revenue_results
+                energy_results["mixed_analysis"] = mixed_results
+
                 analysis.energy_results = energy_results
 
             except Exception as e:
@@ -133,6 +144,8 @@ class ProcessAnalysisView(View):
                     "monthly_breakdown": [],
                     "hourly_plot": "",
                     "daily_plot": "",
+                    "agri_revenue": {},
+                    "mixed_analysis": {}
                 }
 
             analysis.save()

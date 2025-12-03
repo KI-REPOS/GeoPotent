@@ -1,0 +1,36 @@
+{% extends 'potential_app/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Submit Proposal Request to {{ builder.username }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Select Land</label>
+                            <select name="land_id" class="form-select" required>
+                                {% for land in lands %}
+                                <option value="{{ land.id }}">{{ land.name }} ({{ land.area_m2 }} m²)</option>
+                                {% empty %}
+                                <option disabled>No lands registered. Please add land first.</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description / Requirements</label>
+                            <textarea name="description" class="form-control" rows="5" required
+                                placeholder="Describe your requirements..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Request</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

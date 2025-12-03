@@ -544,7 +544,49 @@ body {
                     </div>
                 </div>
             </div>
+            </div>
         </div>
+
+        <!-- Crop Revenue -->
+        {% if energy_results.agri_revenue.details %}
+        <div class="col-12 mb-4 slide-up" style="animation-delay: 0.55s">
+            <div class="glass-card h-100">
+                <div class="card-header bg-transparent border-bottom py-3 section-header">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-circle icon-success me-3">
+                            <i class="fas fa-rupee-sign"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">Estimated Crop Revenue</h5>
+                            <small class="text-muted">Potential earnings from agriculture</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-glass compact-table">
+                            <thead>
+                                <tr>
+                                    <th>Crop</th>
+                                    <th class="text-end">Yield (kg)</th>
+                                    <th class="text-end">Revenue (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in energy_results.agri_revenue.details|slice:":5" %}
+                                <tr>
+                                    <td>{{ item.crop }}</td>
+                                    <td class="text-end">{{ item.yield_kg|floatformat:0 }}</td>
+                                    <td class="text-end fw-bold text-success">₹{{ item.revenue|floatformat:0 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Energy Analysis -->
         <div class="col-lg-6 mb-4 slide-up" style="animation-delay: 0.6s">
@@ -636,6 +678,61 @@ body {
             </div>
         </div>
     </div>
+
+    <!-- Mixed Land Use Optimization -->
+    {% if energy_results.mixed_analysis %}
+    <div class="row mb-4 slide-up" style="animation-delay: 0.65s">
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="card-header bg-transparent border-bottom py-3 section-header">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-circle icon-primary me-3">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">Mixed Land Use Optimization</h5>
+                            <small class="text-muted">Comparison of different revenue scenarios</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 mb-4 mb-md-0">
+                            <div class="glass-metric p-4 h-100 text-center border-success" style="border-width: 2px;">
+                                <h6 class="text-muted mb-3">Best Scenario</h6>
+                                <h3 class="fw-bold text-success mb-2">{{ energy_results.mixed_analysis.best_scenario.name }}</h3>
+                                <h2 class="fw-bold text-dark mb-3">₹{{ energy_results.mixed_analysis.best_scenario.revenue|floatformat:0 }}</h2>
+                                <p class="text-muted small mb-0">{{ energy_results.mixed_analysis.best_scenario.details }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="table-responsive">
+                                <table class="table table-glass">
+                                    <thead>
+                                        <tr>
+                                            <th>Scenario</th>
+                                            <th>Details</th>
+                                            <th class="text-end">Est. Revenue (₹)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for scenario in energy_results.mixed_analysis.scenarios %}
+                                        <tr {% if scenario.name == energy_results.mixed_analysis.best_scenario.name %}class="table-success"{% endif %}>
+                                            <td class="fw-semibold">{{ scenario.name }}</td>
+                                            <td class="small text-muted">{{ scenario.details }}</td>
+                                            <td class="text-end fw-bold">₹{{ scenario.revenue|floatformat:0 }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Action Section -->
     <div class="row mt-4 slide-up" style="animation-delay: 0.7s">
