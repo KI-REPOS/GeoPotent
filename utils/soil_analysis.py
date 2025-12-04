@@ -1,6 +1,6 @@
 import requests
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
