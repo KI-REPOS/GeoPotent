@@ -6,17 +6,13 @@ import os
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from django.views import View
-from django.template.loader import render_to_string   # ✅ Corrected import
+from django.template.loader import render_to_string
 from django.contrib.staticfiles import finders
 
 from .forms import LandAnalysisForm, AdvancedSettingsForm
 from .models import LandAnalysis
 from utils.soil_analysis import get_soil_data, recommend_crops, estimate_agri_revenue
 from utils.energy_estimation import estimate_energy_potential, plot_to_base64, calculate_mixed_potential
-
-import matplotlib.pyplot as plt
-from xhtml2pdf import pisa   # ✅ for PDF rendering
-
 
 # 🔹 Logging setup
 logger = logging.getLogger(__name__)
@@ -123,10 +119,10 @@ class ProcessAnalysisView(View):
                 # Agri Revenue
                 area_ha = analysis.area_ha or (analysis.area_m2 / 10000.0 if analysis.area_m2 else 0)
                 agri_revenue_results = estimate_agri_revenue(crop_recommendations, area_ha)
-                
+
                 # Mixed Potential
                 mixed_results = calculate_mixed_potential(energy_results, agri_revenue_results, area_ha)
-                
+
                 # Merge results
                 energy_results["agri_revenue"] = agri_revenue_results
                 energy_results["mixed_analysis"] = mixed_results
@@ -208,6 +204,10 @@ class ReportView(View):
 class ReportDownloadView(View):
     """ ✅ Generate downloadable PDF report """
     def get(self, request, analysis_id):
+        # 🔹 Lazy imports: only when user actually downloads PDF
+        import matplotlib.pyplot as plt
+        from xhtml2pdf import pisa
+
         try:
             analysis = LandAnalysis.objects.get(id=analysis_id)
             energy_results = analysis.energy_results or {}
@@ -286,7 +286,11 @@ class ReportDownloadView(View):
             response = HttpResponse(content_type="application/pdf")
             response["Content-Disposition"] = f'attachment; filename="land_analysis_report_{analysis_id}.pdf"'
 
-            pisa_status = pisa.CreatePDF(html_string, dest=response, link_callback=link_callback)
+            pisa_status = pisa.CreatePDF(
+                html_string,
+                dest=response,
+                link_callback=link_callback
+            )
             if pisa_status.err:
                 return HttpResponse("⚠️ Error generating PDF report", status=500)
 
@@ -296,4 +300,5 @@ class ReportDownloadView(View):
             return redirect("index")
         except Exception as e:
             logger.error(f"PDF generation failed: {str(e)}")
+            logger.error(traceback.format_exc())
             return HttpResponse("⚠️ Error generating PDF report", status=500)
