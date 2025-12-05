@@ -40,6 +40,7 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
+ACCOUNT_ADAPTER = 'potential_app.allauth_adapter.NoDbAccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'potential_app.allauth_adapter.NoDbSocialAccountAdapter'
 
 LOGIN_REDIRECT_URL = '/'
